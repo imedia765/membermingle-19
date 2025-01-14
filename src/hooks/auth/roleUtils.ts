@@ -1,5 +1,5 @@
-import { UserRole } from '../useRoleAccess';
 import { supabase } from "@/integrations/supabase/client";
+import type { UserRole } from '../useRoleAccess';
 
 export const getRoleFromData = (roleData: Array<{ role: string }>) => {
   if (roleData.some(r => r.role === 'admin')) return 'admin' as UserRole;

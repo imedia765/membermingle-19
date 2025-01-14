@@ -13,7 +13,7 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', {
 });
 
 // Create a proper window object with all required properties
-global.window = dom.window as any;
+global.window = dom.window as unknown as Window & typeof globalThis;
 global.document = window.document;
 global.navigator = window.navigator;
 
@@ -34,7 +34,7 @@ global.Response = vi.fn(() => ({
   statusText: "OK",
   type: "default",
   url: "",
-  clone: () => new Response(),
+  clone: () => new Response()
 })) as any;
 
 // Create a wrapper with providers for testing
@@ -42,9 +42,9 @@ export const renderWithProviders = (ui: ReactNode) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        retry: false,
-      },
-    },
+        retry: false
+      }
+    }
   });
 
   return render(
