@@ -24,6 +24,37 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        dashboard: {
+          // Base colors
+          dark: "#141413",
+          light: "#FAFAF8",
+          
+          // Primary accents
+          accent1: "#9B87F5", // Primary Purple
+          accent2: "#7E69AB", // Secondary Purple
+          accent3: "#7EBF8E", // Success Green
+          
+          // Text colors
+          text: "#C4C3BB",
+          muted: "#8E9196", // Neutral Gray
+          
+          // Card and surface colors
+          card: "#1A1A19",
+          cardHover: "#222221",
+          cardBorder: "#2A2A29",
+          cardBorderHover: "#3A3A39",
+          
+          // Status colors
+          warning: "#FFD700",
+          success: "#4CAF50",
+          error: "#FF5252",
+          info: "#2196F3",
+          
+          // Additional UI elements
+          highlight: "#9B87F5", // Primary Purple for highlights
+          softBlue: "#D3E4FD",
+          softGreen: "#F2FCE2"
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -67,15 +98,10 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
-        "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.5s ease-out",
       },
     },
   },

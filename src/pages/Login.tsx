@@ -1,66 +1,49 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
+import LoginForm from '@/components/auth/LoginForm';
+import CommitteeUpdate from '@/components/auth/CommitteeUpdate';
+import MembershipExpectations from '@/components/auth/MembershipExpectations';
+import ImportantInformation from '@/components/auth/ImportantInformation';
+import MedicalExaminer from '@/components/auth/MedicalExaminer';
 
-export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Implement actual authentication
-    toast({
-      title: "Login successful",
-      description: "Welcome back!",
-    });
-    navigate("/admin");
-  };
-
+const Login = () => {
   return (
-    <div className="container flex items-center justify-center min-h-[calc(100vh-4rem)]">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="email">Email</label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="password">Password</label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-            <div className="text-center text-sm">
-              Don't have an account?{" "}
-              <Link to="/register" className="text-primary hover:underline">
-                Register here
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-dashboard-dark">
+      {/* Header Banner */}
+      <div className="w-full bg-dashboard-card/50 py-6 text-center border-b border-white/10">
+        <p className="text-2xl text-white font-arabic mb-2">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+        <p className="text-sm text-dashboard-text">In the name of Allah, the Most Gracious, the Most Merciful</p>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          {/* Header Section */}
+          <div className="text-center mb-16">
+            <h1 className="text-4xl font-bold text-white mb-6">
+              Pakistan Welfare Association
+            </h1>
+            <p className="text-dashboard-text text-lg max-w-2xl mx-auto leading-relaxed">
+              Welcome to our community platform. Please login with your member number.
+            </p>
+          </div>
+
+          {/* Form and Information Sections */}
+          <div className="space-y-8">
+            <LoginForm />
+            <CommitteeUpdate />
+            <MembershipExpectations />
+            <ImportantInformation />
+            <MedicalExaminer />
+          </div>
+
+          {/* Footer */}
+          <footer className="text-center text-dashboard-muted text-sm py-12 space-y-2">
+            <p>© 2024 SmartFIX Tech, Burton Upon Trent. All rights reserved.</p>
+            <p>Website created and coded by Zaheer Asghar</p>
+          </footer>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default Login;
