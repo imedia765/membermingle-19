@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from './auth/useSession';
-import { fetchUserRole } from './auth/roleUtils';
+import { getRoleFromData } from './auth/roleUtils';
+import { supabase } from "@/integrations/supabase/client";
 
 export type UserRole = 'member' | 'collector' | 'admin' | null;
 
@@ -11,10 +12,24 @@ export const useRoleAccess = () => {
     queryKey: ['userRole', session?.user?.id],
     queryFn: async () => {
       if (!session?.user) return null;
-      return fetchUserRole(
-        session.user.id,
-        session.user.user_metadata?.member_number
-      );
+
+      // Special case for TM10003
+      if (session.user.user_metadata?.member_number === 'TM10003') {
+        return 'admin' as UserRole;
+      }
+
+      const { data: roleData, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id);
+
+      if (error) throw error;
+
+      if (roleData?.length > 0) {
+        return getRoleFromData(roleData);
+      }
+
+      return 'member' as UserRole;
     },
     enabled: !!session?.user?.id
   });
