@@ -155,69 +155,65 @@ const CollectorFinancialsView = () => {
       )}
 
       <Card className="glass-card">
-        <div className="overflow-x-auto">
-          <Tabs defaultValue="overview" className="p-2 sm:p-3 md:p-4" onValueChange={setActiveTab}>
-            <div className="mb-4">
-              <TabsList className="w-full flex flex-nowrap overflow-x-auto hide-scrollbar bg-dashboard-card rounded-lg p-1 border border-dashboard-cardBorder">
-                <TabsTrigger 
-                  className="flex-shrink-0 min-w-[120px] text-xs sm:text-sm px-3 py-2 rounded-md transition-all duration-200
-                    data-[state=active]:bg-dashboard-accent1 data-[state=active]:text-white
-                    data-[state=inactive]:text-dashboard-text data-[state=inactive]:hover:bg-dashboard-cardHover
-                    data-[state=inactive]:hover:text-white" 
-                  value="overview"
-                >
-                  Payment Overview
-                </TabsTrigger>
-                <TabsTrigger 
-                  className="flex-shrink-0 min-w-[120px] text-xs sm:text-sm px-3 py-2 rounded-md transition-all duration-200
-                    data-[state=active]:bg-dashboard-accent1 data-[state=active]:text-white
-                    data-[state=inactive]:text-dashboard-text data-[state=inactive]:hover:bg-dashboard-cardHover
-                    data-[state=inactive]:hover:text-white" 
-                  value="collectors"
-                >
-                  Collectors Overview
-                </TabsTrigger>
-                <TabsTrigger 
-                  className="flex-shrink-0 min-w-[120px] text-xs sm:text-sm px-3 py-2 rounded-md transition-all duration-200
-                    data-[state=active]:bg-dashboard-accent1 data-[state=active]:text-white
-                    data-[state=inactive]:text-dashboard-text data-[state=inactive]:hover:bg-dashboard-cardHover
-                    data-[state=inactive]:hover:text-white" 
-                  value="payments"
-                >
-                  All Payments
-                </TabsTrigger>
-                <TabsTrigger 
-                  className="flex-shrink-0 min-w-[120px] text-xs sm:text-sm px-3 py-2 rounded-md transition-all duration-200
-                    data-[state=active]:bg-dashboard-accent1 data-[state=active]:text-white
-                    data-[state=inactive]:text-dashboard-text data-[state=inactive]:hover:bg-dashboard-cardHover
-                    data-[state=inactive]:hover:text-white" 
-                  value="memberstats"
-                >
-                  Member Stats
-                </TabsTrigger>
-              </TabsList>
+        <Tabs defaultValue="overview" className="p-2 sm:p-3 md:p-4" onValueChange={setActiveTab}>
+          <TabsList className="grid w-full gap-1 bg-dashboard-card rounded-lg p-1 border border-dashboard-cardBorder flex-wrap sm:flex-nowrap">
+            <TabsTrigger 
+              className="w-full sm:w-auto min-w-[120px] text-xs sm:text-sm px-3 py-2 rounded-md transition-all duration-200
+                data-[state=active]:bg-dashboard-accent1 data-[state=active]:text-white
+                data-[state=inactive]:text-dashboard-text data-[state=inactive]:hover:bg-dashboard-cardHover
+                data-[state=inactive]:hover:text-white" 
+              value="overview"
+            >
+              Payment Overview
+            </TabsTrigger>
+            <TabsTrigger 
+              className="w-full sm:w-auto min-w-[120px] text-xs sm:text-sm px-3 py-2 rounded-md transition-all duration-200
+                data-[state=active]:bg-dashboard-accent1 data-[state=active]:text-white
+                data-[state=inactive]:text-dashboard-text data-[state=inactive]:hover:bg-dashboard-cardHover
+                data-[state=inactive]:hover:text-white" 
+              value="collectors"
+            >
+              Collectors Overview
+            </TabsTrigger>
+            <TabsTrigger 
+              className="w-full sm:w-auto min-w-[120px] text-xs sm:text-sm px-3 py-2 rounded-md transition-all duration-200
+                data-[state=active]:bg-dashboard-accent1 data-[state=active]:text-white
+                data-[state=inactive]:text-dashboard-text data-[state=inactive]:hover:bg-dashboard-cardHover
+                data-[state=inactive]:hover:text-white" 
+              value="payments"
+            >
+              All Payments
+            </TabsTrigger>
+            <TabsTrigger 
+              className="w-full sm:w-auto min-w-[120px] text-xs sm:text-sm px-3 py-2 rounded-md transition-all duration-200
+                data-[state=active]:bg-dashboard-accent1 data-[state=active]:text-white
+                data-[state=inactive]:text-dashboard-text data-[state=inactive]:hover:bg-dashboard-cardHover
+                data-[state=inactive]:hover:text-white" 
+              value="memberstats"
+            >
+              Member Stats
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="mt-4">
+            <PaymentStatistics />
+          </TabsContent>
+
+          <TabsContent value="collectors" className="mt-4">
+            <div className="space-y-4">
+              <CollectorsList />
+              <CollectorsSummary />
             </div>
+          </TabsContent>
 
-            <TabsContent value="overview" className="mt-4">
-              <PaymentStatistics />
-            </TabsContent>
+          <TabsContent value="payments" className="mt-4">
+            <AllPaymentsTable showHistory={true} />
+          </TabsContent>
 
-            <TabsContent value="collectors" className="mt-4">
-              <div className="space-y-4">
-                <CollectorsList />
-                <CollectorsSummary />
-              </div>
-            </TabsContent>
-
-            <TabsContent value="payments" className="mt-4">
-              <AllPaymentsTable showHistory={true} />
-            </TabsContent>
-
-            <TabsContent value="memberstats" className="mt-4">
-              <MemberStatsView />
-            </TabsContent>
-          </Tabs>
-        </div>
+          <TabsContent value="memberstats" className="mt-4">
+            <MemberStatsView />
+          </TabsContent>
+        </Tabs>
       </Card>
     </div>
   );
