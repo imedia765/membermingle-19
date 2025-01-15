@@ -7,30 +7,32 @@ import AnnouncementsManager from "./system/AnnouncementsManager";
 
 const SystemToolsView = () => {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <header>
-        <h1 className="text-3xl font-medium mb-2 text-white">System Tools</h1>
+        <h1 className="text-2xl font-semibold text-white">System Tools</h1>
         <p className="text-dashboard-muted">Manage system settings and monitor performance</p>
       </header>
 
-      <DashboardTabs defaultValue="health" className="space-y-4">
-        <DashboardTabsList className="w-full grid grid-cols-5 gap-2 bg-dashboard-card p-1">
-          <DashboardTabsTrigger value="health">
-            System Health
-          </DashboardTabsTrigger>
-          <DashboardTabsTrigger value="git">
-            Git Operations
-          </DashboardTabsTrigger>
-          <DashboardTabsTrigger value="roles">
-            Role Management
-          </DashboardTabsTrigger>
-          <DashboardTabsTrigger value="manual">
-            User Manual
-          </DashboardTabsTrigger>
-          <DashboardTabsTrigger value="announcements">
-            Announcements
-          </DashboardTabsTrigger>
-        </DashboardTabsList>
+      <DashboardTabs defaultValue="health" className="space-y-6">
+        <div className="bg-dashboard-card rounded-lg p-1">
+          <DashboardTabsList className="w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+            <DashboardTabsTrigger value="health">
+              System Health
+            </DashboardTabsTrigger>
+            <DashboardTabsTrigger value="git">
+              Git Operations
+            </DashboardTabsTrigger>
+            <DashboardTabsTrigger value="roles">
+              Role Management
+            </DashboardTabsTrigger>
+            <DashboardTabsTrigger value="manual">
+              User Manual
+            </DashboardTabsTrigger>
+            <DashboardTabsTrigger value="announcements">
+              Announcements
+            </DashboardTabsTrigger>
+          </DashboardTabsList>
+        </div>
 
         <DashboardTabsContent value="health" className="space-y-4">
           <SystemHealthCheck />
