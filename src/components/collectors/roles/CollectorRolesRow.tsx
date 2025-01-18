@@ -36,6 +36,11 @@ export const CollectorRolesRow = ({
     }
   };
 
+  const handleRoleChange = (userId: string, role: UserRole) => {
+    const isAssigned = collector.roles.includes(role);
+    onRoleChange(userId, role, isAssigned ? 'remove' : 'add');
+  };
+
   return (
     <TableRow className="border-dashboard-cardBorder hover:bg-dashboard-card/5">
       <TableCell className="font-medium text-dashboard-text">
@@ -68,8 +73,7 @@ export const CollectorRolesRow = ({
           <RoleAssignment
             userId={collector.auth_user_id}
             currentRoles={collector.roles}
-            onRoleChange={(userId: string, role: UserRole) => 
-              onRoleChange(userId, role, collector.roles.includes(role) ? 'remove' : 'add')}
+            onRoleChange={handleRoleChange}
           />
         </div>
       </TableCell>
