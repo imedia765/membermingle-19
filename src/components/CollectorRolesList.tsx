@@ -89,31 +89,36 @@ export const CollectorRolesList = () => {
   }
 
   return (
-    <div className="space-y-6 p-4 bg-gradient-to-br from-dashboard-dark to-dashboard-card">
+    <div className="space-y-6 p-6 bg-gradient-to-br from-dashboard-dark to-dashboard-card rounded-lg">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-semibold bg-gradient-to-r from-dashboard-accent1 to-dashboard-accent2 bg-clip-text text-transparent">
           Active Collectors and Roles
         </h2>
-        <Badge variant="outline" className="text-dashboard-accent1 border-dashboard-accent1">
+        <Badge 
+          variant="outline" 
+          className="bg-dashboard-accent1/10 text-dashboard-accent1 border-dashboard-accent1"
+        >
           {collectors?.length || 0} Collectors
         </Badge>
       </div>
 
-      <Card className="p-6 bg-dashboard-card border-dashboard-cardBorder hover:border-dashboard-cardBorderHover transition-all duration-300">
-        <Table>
-          <CollectorRolesHeader />
-          <TableBody>
-            {collectors.map((collector: CollectorInfo) => (
-              <CollectorRolesRow
-                key={collector.member_number}
-                collector={collector}
-                onRoleChange={handleRoleChange}
-                onSync={handleSync}
-                permissions={permissions}
-              />
-            ))}
-          </TableBody>
-        </Table>
+      <Card className="overflow-hidden bg-dashboard-card border-dashboard-cardBorder hover:border-dashboard-cardBorderHover transition-all duration-300">
+        <div className="overflow-x-auto">
+          <Table>
+            <CollectorRolesHeader />
+            <TableBody>
+              {collectors.map((collector: CollectorInfo) => (
+                <CollectorRolesRow
+                  key={collector.member_number}
+                  collector={collector}
+                  onRoleChange={handleRoleChange}
+                  onSync={handleSync}
+                  permissions={permissions}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </Card>
     </div>
   );
