@@ -23,19 +23,20 @@ export const CollectorRolesList = () => {
 
   const handleRoleChange = async (userId: string, role: UserRole, action: 'add' | 'remove') => {
     try {
-      const roleData = { user_id: userId, role } as const; // Use const assertion to preserve literal types
-      
       if (action === 'add') {
         const { error } = await supabase
           .from('user_roles')
-          .insert(roleData);
+          .insert([{ 
+            user_id: userId, 
+            role: role as UserRole 
+          }]);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('user_roles')
           .delete()
           .eq('user_id', userId)
-          .eq('role', roleData.role);
+          .eq('role', role as UserRole);
         if (error) throw error;
       }
       
