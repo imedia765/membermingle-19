@@ -10,17 +10,13 @@ interface RoleAssignmentProps {
 export const RoleAssignment = ({ userId, currentRoles, onRoleChange }: RoleAssignmentProps) => {
   const availableRoles: UserRole[] = ['admin', 'collector', 'member'];
 
-  const handleRoleClick = (role: UserRole) => {
-    onRoleChange(userId, role);
-  };
-
   return (
     <div className="flex gap-2">
       {availableRoles.map((role) => (
         <Button
           key={role}
           variant={currentRoles.includes(role) ? 'default' : 'outline'}
-          onClick={() => handleRoleClick(role)}
+          onClick={() => onRoleChange(userId, role)}
           className={`
             ${currentRoles.includes(role) 
               ? 'bg-dashboard-accent1 hover:bg-dashboard-accent1/90' 
