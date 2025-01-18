@@ -2,10 +2,9 @@ import { Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { UserRole } from "@/types/collector-roles";
+import { UserRole, CollectorInfo } from "@/types/collector-roles";
 import { RoleAssignment } from "./RoleAssignment";
 import { SyncStatusIndicator } from "./SyncStatusIndicator";
-import { CollectorInfo } from "@/types/collector-roles";
 
 interface CollectorRolesRowProps {
   collector: CollectorInfo;
@@ -26,9 +25,20 @@ export const CollectorRolesRow = ({
   onSync,
   permissions
 }: CollectorRolesRowProps) => {
+  const getRoleBadgeColor = (role: UserRole) => {
+    switch (role) {
+      case 'admin':
+        return 'bg-dashboard-accent1/20 text-dashboard-accent1 border-dashboard-accent1';
+      case 'collector':
+        return 'bg-dashboard-accent2/20 text-dashboard-accent2 border-dashboard-accent2';
+      default:
+        return 'bg-dashboard-accent3/20 text-dashboard-accent3 border-dashboard-accent3';
+    }
+  };
+
   return (
     <TableRow className="border-dashboard-cardBorder hover:bg-dashboard-card/5">
-      <TableCell className="font-medium text-white">
+      <TableCell className="font-medium text-dashboard-text">
         {collector.full_name || 'N/A'}
       </TableCell>
       <TableCell>
@@ -43,11 +53,25 @@ export const CollectorRolesRow = ({
         </div>
       </TableCell>
       <TableCell>
-        <RoleAssignment
-          userId={collector.auth_user_id || ''}
-          currentRoles={collector.roles}
-          onRoleChange={onRoleChange}
-        />
+        <div className="space-y-2">
+          <div className="space-y-1">
+            {collector.roles.map((role, idx) => (
+              <Badge
+                key={`${role}-${idx}`}
+                variant="outline"
+                className={`mr-1 ${getRoleBadgeColor(role)}`}
+              >
+                {role}
+              </Badge>
+            ))}
+          </div>
+          <RoleAssignment
+            userId={collector.auth_user_id}
+            currentRoles={collector.roles}
+            onRoleChange={(userId: string, role: UserRole) => 
+              onRoleChange(userId, role, collector.roles.includes(role) ? 'remove' : 'add')}
+          />
+        </div>
       </TableCell>
       <TableCell>
         <div className="space-y-1">
@@ -55,7 +79,7 @@ export const CollectorRolesRow = ({
             <Badge 
               key={`${detail.role}-${index}`}
               variant="outline"
-              className="bg-dashboard-accent2/10 text-dashboard-accent2 mr-1"
+              className={`mr-1 ${getRoleBadgeColor(detail.role)}`}
             >
               {detail.role}
             </Badge>
@@ -68,7 +92,7 @@ export const CollectorRolesRow = ({
             <Badge 
               key={`${role.role_name}-${index}`}
               variant="outline"
-              className={`${role.is_active ? 'bg-dashboard-accent3/10 text-dashboard-accent3' : 'bg-dashboard-muted/10 text-dashboard-muted'}`}
+              className={`${role.is_active ? 'bg-dashboard-accent3/10 text-dashboard-accent3' : 'bg-dashboard-muted/10 text-dashboard-muted'} border-current`}
             >
               {role.role_name}
             </Badge>
@@ -96,7 +120,7 @@ export const CollectorRolesRow = ({
             <Badge 
               key={key}
               variant="outline"
-              className={`${value ? 'bg-dashboard-accent3/10 text-dashboard-accent3' : 'bg-dashboard-muted/10 text-dashboard-muted'} mr-1`}
+              className={`${value ? 'bg-dashboard-accent3/10 text-dashboard-accent3' : 'bg-dashboard-muted/10 text-dashboard-muted'} border-current mr-1`}
             >
               {key.replace(/([A-Z])/g, ' $1').trim()}
             </Badge>
