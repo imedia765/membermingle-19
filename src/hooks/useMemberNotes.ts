@@ -42,10 +42,26 @@ export const useMemberNotes = (memberId: string) => {
     },
   });
 
+  const deleteNote = useMutation({
+    mutationFn: async (noteId: string) => {
+      const { error } = await supabase
+        .from('member_notes')
+        .delete()
+        .eq('id', noteId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['member-notes', memberId] });
+    },
+  });
+
   return {
     notes,
     isLoading,
     addNote: addNote.mutate,
     isAddingNote: addNote.isPending,
+    deleteNote: deleteNote.mutate,
+    isDeletingNote: deleteNote.isPending,
   };
 };
