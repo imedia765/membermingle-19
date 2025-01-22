@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,26 +27,55 @@ const SidePanel = ({ onTabChange }: SidePanelProps) => {
   const { userRole, userRoles, roleLoading, hasRole } = useRoleAccess();
   const { toast } = useToast();
   
-  console.log('SidePanel render state:', {
-    userRole,
-    userRoles,
-    roleLoading
-  });
-
-  const handleLogoutClick = async () => {
-    try {
-      await handleSignOut(false);
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast({
-        title: "Error signing out",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive",
-      });
+  // Memoize navigation items to prevent recreating on every render
+  const navigationItems = useMemo(() => [
+    {
+      name: 'Overview',
+      icon: LayoutDashboard,
+      tab: 'dashboard',
+      alwaysShow: true
+    },
+    {
+      name: 'Members',
+      icon: Users,
+      tab: 'users',
+      requiresRole: ['admin', 'collector'] as UserRole[]
+    },
+    {
+      name: 'Collectors & Financials',
+      icon: Wallet,
+      tab: 'financials',
+      requiresRole: ['admin'] as UserRole[]
+    },
+    {
+      name: 'System',
+      icon: Settings,
+      tab: 'system',
+      requiresRole: ['admin'] as UserRole[]
     }
-  };
+  ], []);
 
-  const handleTabChange = (tab: string) => {
+  // Memoize the shouldShowTab function
+  const shouldShowTab = useCallback((tab: string): boolean => {
+    if (roleLoading) return tab === 'dashboard';
+    if (!userRoles || !userRole) return tab === 'dashboard';
+
+    switch (tab) {
+      case 'dashboard':
+        return true;
+      case 'users':
+        return hasRole('admin') || hasRole('collector');
+      case 'financials':
+        return hasRole('admin');
+      case 'system':
+        return hasRole('admin');
+      default:
+        return false;
+    }
+  }, [roleLoading, userRoles, userRole, hasRole]);
+
+  // Memoize the handleTabChange function
+  const handleTabChange = useCallback((tab: string) => {
     if (roleLoading) {
       toast({
         title: "Please wait",
@@ -64,52 +94,27 @@ const SidePanel = ({ onTabChange }: SidePanelProps) => {
         variant: "destructive",
       });
     }
-  };
+  }, [roleLoading, shouldShowTab, onTabChange, toast]);
 
-  const shouldShowTab = (tab: string): boolean => {
-    if (roleLoading) return tab === 'dashboard';
-    if (!userRoles || !userRole) return tab === 'dashboard';
-
-    switch (tab) {
-      case 'dashboard':
-        return true;
-      case 'users':
-        return hasRole('admin') || hasRole('collector');
-      case 'financials':
-        return hasRole('admin'); // Only show financials for admin
-      case 'system':
-        return hasRole('admin');
-      default:
-        return false;
+  const handleLogoutClick = useCallback(async () => {
+    try {
+      await handleSignOut(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Error signing out",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
     }
-  };
+  }, [handleSignOut, toast]);
 
-  const navigationItems = [
-    {
-      name: 'Overview',
-      icon: LayoutDashboard,
-      tab: 'dashboard',
-      alwaysShow: true
-    },
-    {
-      name: 'Members',
-      icon: Users,
-      tab: 'users',
-      requiresRole: ['admin', 'collector'] as UserRole[]
-    },
-    {
-      name: 'Collectors & Financials',
-      icon: Wallet,
-      tab: 'financials',
-      requiresRole: ['admin'] as UserRole[] // Only show for admin
-    },
-    {
-      name: 'System',
-      icon: Settings,
-      tab: 'system',
-      requiresRole: ['admin'] as UserRole[]
-    }
-  ];
+  // Only log when role loading state changes
+  console.log('SidePanel render state:', {
+    userRole,
+    userRoles,
+    roleLoading
+  });
 
   return (
     <div className="flex flex-col h-full bg-dashboard-card border-r border-dashboard-cardBorder">
