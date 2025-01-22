@@ -55,7 +55,7 @@ const SidePanel = ({ onTabChange }: SidePanelProps) => {
     }
   ], []);
 
-  // Memoize the shouldShowTab function
+  // Memoize the shouldShowTab function with proper dependencies
   const shouldShowTab = useCallback((tab: string): boolean => {
     if (roleLoading) return tab === 'dashboard';
     if (!userRoles || !userRole) return tab === 'dashboard';
@@ -74,7 +74,7 @@ const SidePanel = ({ onTabChange }: SidePanelProps) => {
     }
   }, [roleLoading, userRoles, userRole, hasRole]);
 
-  // Memoize the handleTabChange function
+  // Memoize the handleTabChange function with proper dependencies
   const handleTabChange = useCallback((tab: string) => {
     if (roleLoading) {
       toast({
@@ -109,12 +109,18 @@ const SidePanel = ({ onTabChange }: SidePanelProps) => {
     }
   }, [handleSignOut, toast]);
 
-  // Only log when role loading state changes
-  console.log('SidePanel render state:', {
-    userRole,
-    userRoles,
-    roleLoading
-  });
+  // Memoize the role status text
+  const roleStatusText = useMemo(() => {
+    if (roleLoading) return 'Loading access...';
+    return userRole ? `Role: ${userRole}` : 'Access restricted';
+  }, [roleLoading, userRole]);
+
+  // Memoize the visible navigation items
+  const visibleNavigationItems = useMemo(() => {
+    return navigationItems.filter(item => 
+      item.alwaysShow || (!roleLoading && item.requiresRole?.some(role => userRoles?.includes(role)))
+    );
+  }, [navigationItems, roleLoading, userRoles]);
 
   return (
     <div className="flex flex-col h-full bg-dashboard-card border-r border-dashboard-cardBorder">
@@ -124,29 +130,27 @@ const SidePanel = ({ onTabChange }: SidePanelProps) => {
           {roleLoading && <Loader2 className="h-4 w-4 animate-spin text-dashboard-accent1" />}
         </h2>
         <p className="text-sm text-dashboard-muted">
-          {roleLoading ? 'Loading access...' : userRole ? `Role: ${userRole}` : 'Access restricted'}
+          {roleStatusText}
         </p>
       </div>
       
       <ScrollArea className="flex-1 px-4 lg:px-6">
         <div className="space-y-1.5 py-4">
-          {navigationItems.map((item) => (
-            (item.alwaysShow || !roleLoading && item.requiresRole?.some(role => userRoles?.includes(role as UserRole))) && (
-              <Button
-                key={item.tab}
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start gap-2 text-sm font-medium",
-                  "hover:bg-dashboard-hover/10 hover:text-white",
-                  "transition-colors duration-200"
-                )}
-                onClick={() => handleTabChange(item.tab)}
-                disabled={roleLoading}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.name}
-              </Button>
-            )
+          {visibleNavigationItems.map((item) => (
+            <Button
+              key={item.tab}
+              variant="ghost"
+              className={cn(
+                "w-full justify-start gap-2 text-sm font-medium",
+                "hover:bg-dashboard-hover/10 hover:text-white",
+                "transition-colors duration-200"
+              )}
+              onClick={() => handleTabChange(item.tab)}
+              disabled={roleLoading}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.name}
+            </Button>
           ))}
         </div>
       </ScrollArea>
