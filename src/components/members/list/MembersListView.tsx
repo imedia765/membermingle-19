@@ -75,27 +75,49 @@ const MembersListView = ({ searchTerm, userRole, collectorInfo }: MembersListVie
     },
   });
 
-  // Separate query for members with notes
-  const { data: membersWithNotes } = useQuery({
-    queryKey: ['members-with-notes', searchTerm, userRole],
+  // Updated query to fetch all member notes
+  const { data: membersWithNotes, isLoading: notesLoading } = useQuery({
+    queryKey: ['all-member-notes', searchTerm, userRole],
     queryFn: async () => {
-      let notesQuery = supabase
+      // First get all members
+      let membersQuery = supabase
         .from('members')
-        .select('*')
-        .not('admin_note', 'is', null);
+        .select('id, full_name, member_number');
 
       if (searchTerm) {
-        notesQuery = notesQuery.or(`full_name.ilike.%${searchTerm}%,member_number.ilike.%${searchTerm}%,collector.ilike.%${searchTerm}%`);
+        membersQuery = membersQuery.or(`full_name.ilike.%${searchTerm}%,member_number.ilike.%${searchTerm}%`);
       }
 
       if (userRole === 'collector' && collectorInfo?.name) {
-        notesQuery = notesQuery.eq('collector', collectorInfo.name);
+        membersQuery = membersQuery.eq('collector', collectorInfo.name);
       }
 
-      const { data } = await notesQuery;
-      return data;
+      const { data: members, error: membersError } = await membersQuery;
+      if (membersError) throw membersError;
+
+      // Then get all notes for these members
+      const { data: notes, error: notesError } = await supabase
+        .from('member_notes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (notesError) throw notesError;
+
+      // Group notes by member
+      const memberNotesMap = new Map();
+      members?.forEach(member => {
+        const memberNotes = notes?.filter(note => note.member_id === member.id) || [];
+        if (memberNotes.length > 0) {
+          memberNotesMap.set(member.id, {
+            ...member,
+            notes: memberNotes
+          });
+        }
+      });
+
+      return Array.from(memberNotesMap.values());
     },
-    enabled: userRole === 'admin' // Only fetch for admin users
+    enabled: userRole === 'admin'
   });
 
   return (
@@ -140,32 +162,38 @@ const MembersListView = ({ searchTerm, userRole, collectorInfo }: MembersListVie
 
       <RoleBasedRenderer allowedRoles={['admin']}>
         <DashboardTabsContent value="notes">
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {membersWithNotes?.map(member => (
-                <div key={member.id} className="space-y-4">
-                  <div className="bg-dashboard-card p-4 rounded-lg border border-dashboard-cardBorder hover:border-dashboard-accent1 transition-colors">
-                    <div className="flex flex-col space-y-2">
-                      <div className="flex justify-between items-start border-b border-dashboard-cardBorder pb-2">
-                        <span className="text-sm font-medium text-dashboard-accent1">
-                          {member.full_name}
-                        </span>
-                        <span className="text-xs text-dashboard-muted">
-                          #{member.member_number}
-                        </span>
+          {notesLoading ? (
+            <div className="text-center text-dashboard-muted py-8">
+              Loading notes...
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {membersWithNotes?.map(member => (
+                  <div key={member.id} className="space-y-4">
+                    <div className="bg-dashboard-card p-4 rounded-lg border border-dashboard-cardBorder hover:border-dashboard-accent1 transition-colors">
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex justify-between items-start border-b border-dashboard-cardBorder pb-2">
+                          <span className="text-sm font-medium text-dashboard-accent1">
+                            {member.full_name}
+                          </span>
+                          <span className="text-xs text-dashboard-muted">
+                            #{member.member_number}
+                          </span>
+                        </div>
+                        <NotesList memberId={member.id} />
                       </div>
-                      <NotesList memberId={member.id} />
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-            {(!membersWithNotes?.some(member => member.admin_note)) && (
-              <div className="text-center text-dashboard-muted py-8">
-                No notes available
+                ))}
               </div>
-            )}
-          </div>
+              {(!membersWithNotes || membersWithNotes.length === 0) && (
+                <div className="text-center text-dashboard-muted py-8">
+                  No notes available
+                </div>
+              )}
+            </div>
+          )}
         </DashboardTabsContent>
       </RoleBasedRenderer>
     </DashboardTabs>
