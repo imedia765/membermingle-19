@@ -1,11 +1,12 @@
-import { Member } from "@/types/member";
+import { useState } from "react";
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
 import CollectorMemberPayments from '../CollectorMemberPayments';
 import MembersListContent from './MembersListContent';
 import { DashboardTabs, DashboardTabsList, DashboardTabsTrigger, DashboardTabsContent } from "@/components/ui/dashboard-tabs";
 import CollectorPaymentSummary from '@/components/CollectorPaymentSummary';
+import RoleBasedRenderer from '@/components/RoleBasedRenderer';
+import NotesList from '../notes/NotesList';
 
 interface MembersListViewProps {
   searchTerm: string;
@@ -19,21 +20,23 @@ const MembersListView = ({ searchTerm, userRole, collectorInfo }: MembersListVie
   const ITEMS_PER_PAGE = 20;
 
   const { data: membersData, isLoading } = useQuery({
-    queryKey: ['members', searchTerm, userRole, page],
+    queryKey: ['members', searchTerm, userRole, page, collectorInfo?.name],
     queryFn: async () => {
       console.log('Fetching members with search term:', searchTerm);
+      console.log('Collector info:', collectorInfo);
       
       // First get total count
-      const countQuery = supabase
+      let countQuery = supabase
         .from('members')
         .select('*', { count: 'exact', head: true });
       
       if (searchTerm) {
-        countQuery.or(`full_name.ilike.%${searchTerm}%,member_number.ilike.%${searchTerm}%,collector.ilike.%${searchTerm}%`);
+        countQuery = countQuery.or(`full_name.ilike.%${searchTerm}%,member_number.ilike.%${searchTerm}%,collector.ilike.%${searchTerm}%`);
       }
 
+      // If user is a collector, only show their assigned members
       if (userRole === 'collector' && collectorInfo?.name) {
-        countQuery.eq('collector', collectorInfo.name);
+        countQuery = countQuery.eq('collector', collectorInfo.name);
       }
       
       const { count } = await countQuery;
@@ -53,6 +56,7 @@ const MembersListView = ({ searchTerm, userRole, collectorInfo }: MembersListVie
         query = query.or(`full_name.ilike.%${searchTerm}%,member_number.ilike.%${searchTerm}%,collector.ilike.%${searchTerm}%`);
       }
 
+      // If user is a collector, only show their assigned members
       if (userRole === 'collector' && collectorInfo?.name) {
         query = query.eq('collector', collectorInfo.name);
       }
@@ -64,25 +68,35 @@ const MembersListView = ({ searchTerm, userRole, collectorInfo }: MembersListVie
       if (error) throw error;
       
       return {
-        members: data as Member[],
+        members: data,
         totalCount,
         currentPage: safePage
       };
     },
   });
 
-  const handlePaymentClick = (memberId: string) => {
-    setSelectedMemberId(memberId);
-  };
+  // Separate query for members with notes
+  const { data: membersWithNotes } = useQuery({
+    queryKey: ['members-with-notes', searchTerm, userRole],
+    queryFn: async () => {
+      let notesQuery = supabase
+        .from('members')
+        .select('*')
+        .not('admin_note', 'is', null);
 
-  const handleEditClick = (memberId: string) => {
-    console.log('Edit clicked for member:', memberId);
-  };
+      if (searchTerm) {
+        notesQuery = notesQuery.or(`full_name.ilike.%${searchTerm}%,member_number.ilike.%${searchTerm}%,collector.ilike.%${searchTerm}%`);
+      }
 
-  // Update page state if we had to adjust it
-  if (membersData?.currentPage && membersData.currentPage !== page) {
-    setPage(membersData.currentPage);
-  }
+      if (userRole === 'collector' && collectorInfo?.name) {
+        notesQuery = notesQuery.eq('collector', collectorInfo.name);
+      }
+
+      const { data } = await notesQuery;
+      return data;
+    },
+    enabled: userRole === 'admin' // Only fetch for admin users
+  });
 
   return (
     <DashboardTabs defaultValue="members" className="w-full">
@@ -94,6 +108,9 @@ const MembersListView = ({ searchTerm, userRole, collectorInfo }: MembersListVie
           </>
         )}
         <DashboardTabsTrigger value="members">Members List</DashboardTabsTrigger>
+        <RoleBasedRenderer allowedRoles={['admin']}>
+          <DashboardTabsTrigger value="notes">Notes</DashboardTabsTrigger>
+        </RoleBasedRenderer>
       </DashboardTabsList>
 
       {userRole === 'collector' && collectorInfo && (
@@ -116,10 +133,41 @@ const MembersListView = ({ searchTerm, userRole, collectorInfo }: MembersListVie
           currentPage={page}
           totalPages={Math.ceil((membersData?.totalCount || 0) / ITEMS_PER_PAGE)}
           onPageChange={setPage}
-          onPaymentClick={handlePaymentClick}
-          onEditClick={handleEditClick}
+          onPaymentClick={(id) => setSelectedMemberId(id)}
+          onEditClick={(id) => setSelectedMemberId(id)}
         />
       </DashboardTabsContent>
+
+      <RoleBasedRenderer allowedRoles={['admin']}>
+        <DashboardTabsContent value="notes">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {membersWithNotes?.map(member => (
+                <div key={member.id} className="space-y-4">
+                  <div className="bg-dashboard-card p-4 rounded-lg border border-dashboard-cardBorder hover:border-dashboard-accent1 transition-colors">
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex justify-between items-start border-b border-dashboard-cardBorder pb-2">
+                        <span className="text-sm font-medium text-dashboard-accent1">
+                          {member.full_name}
+                        </span>
+                        <span className="text-xs text-dashboard-muted">
+                          #{member.member_number}
+                        </span>
+                      </div>
+                      <NotesList memberId={member.id} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {(!membersWithNotes?.some(member => member.admin_note)) && (
+              <div className="text-center text-dashboard-muted py-8">
+                No notes available
+              </div>
+            )}
+          </div>
+        </DashboardTabsContent>
+      </RoleBasedRenderer>
     </DashboardTabs>
   );
 };
